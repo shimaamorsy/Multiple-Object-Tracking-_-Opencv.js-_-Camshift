@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" crossOriginIsolated="true">
+  <head>
+    <meta charset="utf-8" />
+    <title>multiple object tracking</title>
+    <script type="text/javascript" src="cam4.js"></script>
+  </head>
+  <body>
+    <h2>CamShift Example</h2>
+    <div>
+      <div class="control">
+        <button id="startAndStop" disabled>Start</button>
+      </div>
+    </div>
+    <p class="err" id="errorMessage"></p>
+    <div>
+      <table cellpadding="0" cellspacing="0" width="0" border="0">
+        <tr>
+          <td>
+            <video id="videoInput" width="640" height="640" muted loop></video>
+          </td>
+          <td>
+            <canvas id="canvasOutput" width="640" height="640"></canvas>
+          </td>
+          <td>
+            <canvas id="canvasOutput2" width="320" height="240"></canvas>
+          </td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="caption">videoInput</div>
+          </td>
+          <td>
+            <div class="caption">canvasOutput</div>
+          </td>
+          <td></td>
+        </tr>
+        <tr>
+          <canvas id="templateCanvasInput" width="320" height="240"></canvas>
+        </tr>
+      </table>
+    </div>
+    <script src="https://webrtc.github.io/adapter/adapter-5.0.4.js" type="text/javascript"></script>
+    <script src="utils.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      let utils = new Utils("errorMessage");
+      let streaming = false;
+      let videoInput = document.getElementById("videoInput");
+      let startAndStop = document.getElementById("startAndStop");
+      let canvasOutput = document.getElementById("canvasOutput");
+      let canvasContext = canvasOutput.getContext("2d");
+      startAndStop.addEventListener("click", () => {
+        if (!streaming) {
+          utils.clearError();
+          videoInput.play().then(() => {
+            onVideoStarted();
+          });
+        } else {
+          videoInput.currentTime = 0;
+          onVideoStopped();
+        }
+      });
+      function onVideoStarted() {
+        streaming = true;
+        startAndStop.innerText = "Stop";
+        videoInput.height =
+          videoInput.width * (videoInput.videoHeight / videoInput.videoWidth);
+        window.ImageProcessors.CamShift();
+      }
+      function onVideoStopped() {
+        streaming = false;
+        canvasContext.clearRect(0, 0, canvasOutput.width, canvasOutput.height);
+        startAndStop.innerText = "Start";
+      }
+      utils.loadOpenCv(() => {
+        videoInput.addEventListener("canplay", () => {
+          startAndStop.removeAttribute("disabled");
+        });
+        videoInput.src = "assets/video1.mp4";
+      });
+    </script>
+  </body>
+</html>
